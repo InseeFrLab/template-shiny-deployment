@@ -23,3 +23,6 @@ shiny:
     containerPorts:
       postgresql: 5432
     fullnameOverride: postgresql-db
+    primary:
+      persistence:
+        size: 8Gi
