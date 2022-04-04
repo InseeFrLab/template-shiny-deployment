@@ -1,6 +1,6 @@
 shiny:
   image:
-    repository: inseefrlab/template-shiny-app
+    repository: inseefrlab/shiny-app-template
     tag: "1.0.0"
   ingress:
     enabled: true
@@ -25,4 +25,4 @@ shiny:
     fullnameOverride: postgresql-db
     primary:
       persistence:
-        size: 8Gi
+        size: 2Gi
