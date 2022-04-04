@@ -142,7 +142,7 @@ Finalement, pour déployer l'application sur le cluster :
 - cloner le repository contenant le chart de **votre** application (pas le template)
 - exécuter la commande : `helm install nom_du_repo --generate-name`
 
-Si tout a fonctionné, un message devrait confirmer l'instanciation du chart, est l'application devrait désormais être disponible à l'URL spécifiée dans le fichier `values.yaml`.
+Si tout a fonctionné, un message devrait confirmer l'instanciation du chart, est l'application devrait désormais être disponible à l'URL (bien utiliser le protocole https) spécifiée dans le fichier `values.yaml`.
 
 ### TODO
 
