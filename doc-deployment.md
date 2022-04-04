@@ -99,7 +99,7 @@ type: Opaque
 stringData:
   AWS_ACCESS_KEY_ID: changeme
   AWS_SECRET_ACCESS_KEY: changeme
-  AWS_S3_ENDPOINT: minio.kube.developpement.insee.fr
+  AWS_S3_ENDPOINT: minio.lab.sspcloud.fr
   AWS_DEFAULT_REGION: us-east-1
 ```
 
@@ -143,8 +143,6 @@ Finalement, pour déployer l'application sur le cluster :
 - exécuter la commande : `helm install nom_du_repo --generate-name`
 
 Si tout a fonctionné, un message devrait confirmer l'instanciation du chart, est l'application devrait désormais être disponible à l'URL spécifiée dans le fichier `values.yaml`.
-
-A titre d'exemple, l'application template est déployée à cette adresse : http://myshinyapp.lab.sspcloud.fr
 
 ### TODO
 
