@@ -130,9 +130,17 @@ stringData:
   replication-password: changeme
 ```
 
-Trois passwords sont nécessaires, mais seul le champ `password` (password utilisateur) sera utilisé en pratique dans l'application. Il est donc possible de fixer le même password pour les trois champs sans trop de risque.
+Trois passwords sont nécessaires, mais seul le champ `password` (password utilisateur) sera utilisé en pratique dans l'application. Il est donc possible de fixer le même password pour les trois champs sans trop de risque. Là encore, toutes ces informations (valeurs du chart et secrets) seront passées à l'application sous la forme de variables d'environnement, dont voici la liste :
 
-Là encore, toutes ces informations (valeurs et secrets) seront passées à l'application sous la forme de variables d'environnement. Le fichier [data.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/R/data.R) montre comment se connecter à la base PostgreSQL et y écrire de la donnée, et le fichier [server.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/inst/app/server.R) montre comment se connecter à la base PostgreSQL et y lire de la donnée.
+|      **Variable**      |          **Description**          |
+|:----------------------:|:---------------------------------:|
+| POSTGRESQL_DB_NAME     | Nom de la BDD à créer             |
+| POSTGRESQL_DB_HOST     | Nom d'hôte du service             |
+| POSTGRESQL_DB_PORT     | Port utilisé par le service       |
+| POSTGRESQL_DB_USER     | Nom de l'utilisateur à créer      |
+| POSTGRESQL_DB_PASSWORD | Password de l'utilisateur à créer |
+
+Le fichier [data.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/R/data.R) montre comment se connecter à la base PostgreSQL et y écrire de la donnée, et le fichier [server.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/inst/app/server.R) montre comment se connecter à la base PostgreSQL et y lire de la donnée.
 
 #### Déploiement du chart Helm
 
