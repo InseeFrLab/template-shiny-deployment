@@ -4,13 +4,7 @@ shiny:
     tag: "1.0.1"
   ingress:
     enabled: true
-    annotations:
-      kubernetes.io/ingress.class: nginx
-    hosts: 
-      - host: myshinyapp.lab.sspcloud.fr
-        paths:
-        - path: /
-          pathType: Prefix
+    hostname: myshinyapp.lab.sspcloud.fr
   s3:
     enabled: true
     existingSecret: myshinyapp-s3
