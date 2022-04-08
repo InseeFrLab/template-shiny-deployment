@@ -148,7 +148,7 @@ Finalement, pour déployer l'application sur le cluster :
 - lancer un service VSCode sur le cluster *en mettant des droits Admin sur le namespace Kubernetes* (à l'initialisation du service dans l'IHM : onglet Kubernetes -> "Role" -> sélectionner "admin")
 - lancer un terminal
 - cloner le repository contenant le chart de **votre** application (pas le template)
-- importer les dépendances (en l'occurence, le chart [Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny)) : `helm update nom_du_repo`
+- importer les dépendances (en l'occurence, le chart [Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny)) : `helm dependency update nom_du_repo`
 - exécuter la commande : `helm install nom_du_repo --generate-name`
 
 Si tout a fonctionné, un message devrait confirmer l'instanciation du chart, est l'application devrait désormais être disponible à l'URL (bien utiliser le protocole https) spécifiée dans le fichier `values.yaml`.
