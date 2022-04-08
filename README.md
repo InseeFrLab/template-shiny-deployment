@@ -156,7 +156,5 @@ Si tout a fonctionné, un message devrait confirmer l'instanciation du chart, es
 ### TODO
 
 - industrialiser avec Golem
-- activer les extensions pour faire du PostGIS
 - LDAP et utilisation concurrente avec ShinyProxy
 - GitOps avec Argo CD
-- debugging des Pods
