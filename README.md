@@ -69,7 +69,7 @@ Le fichier `.github/workflows/ci.yaml` contient une suite d'instructions qui von
 
 Le déploiement de l'application nécessite la création d'un chart Helm. Concrètement, un chart Helm peut être vu comme un package Kubernetes, contenant les ressources nécessaires au déploiement d'une application. 
 
-Ce repository contient un template de chart Helm permettant le déploiement de l'application [shiny-app](https://github.com/InseeFrLab/helm-charts-shiny-apps). Il convient donc de forker également ce second repository, qui va servir de base pour le chart Helm de votre application. Ce chart contient pour l'essentiel deux fichiers.
+Ce repository contient [un template de chart Helm](https://github.com/InseeFrLab/helm-charts-shiny-apps) permettant le déploiement de l'application shiny-app. Il convient donc de forker également ce second repository, qui va servir de base pour le chart Helm de votre application. Ce chart contient pour l'essentiel deux fichiers.
 
 Le fichier `Chart.yaml` contient les métadonnées du chart (nom, version) ainsi que ses dépendances, i.e. les potentiels autres charts Helm dont il hérite. Dans notre cas, on voit que le chart hérite du [chart Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny) d'InseeFrLab. Ce chart spécifie généralement les ressources Kubernetes nécessaires au déploiement d'une application Shiny, de sorte à ce que l'on ait qu'à modifier les valeurs d'instanciation pour déployer notre application.
 
