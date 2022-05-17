@@ -1,4 +1,4 @@
-# Un template de déploiement d'une application Shiny sur le SSP Cloud
+# Un template de déploiement d'une application Shiny sur une instance d'Onyxia (pour l'instant sur le SSP Cloud)
 
 Ce tutoriel documente le processus de déploiement d'une application R Shiny sur un cluster Kubernetes. La configuration présentée est spécifiquement adaptée au [SSP Cloud](https://datalab.sspcloud.fr/home). L'objectif du procesuss est d'automatiser le déploiement au maximum pour favoriser sa reproductibilité : le processus prend en entrée les données nécessaires à l'application Shiny, et renvoie en output une URL qui permet d'accéder à l'application Shiny sur internet.
 
