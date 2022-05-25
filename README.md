@@ -54,14 +54,38 @@ Pour pouvoir être déployée sur un cluster Kubernetes, une application doit n�
 
 Le fichier `Dockerfile` situé à la racine du projet contient une suite d'instructions qui permettent de conteneuriser l'application, sous la forme d'une image Docker. Ce fichier contient 5 parties :
 - **appel de l'image Docker de base** : `rocker/shiny`. Il n'est généralement pas nécessaire de changer cette image.
-- **installation des librairies système** nécessaires pour installer les packages R utilisés par l'application. Cette liste se construit par un processus itératif : build l'image docker -> regarder les logs -> trouver les packages qui n'ont pas réussi à s'installer -> les logs spécifient généralement les librairies système manquantes -> ajouter les librairies manquantes au Dockerfile -> build l'image docker -> ...
+- **installation des librairies système** nécessaires pour installer les packages R utilisés par l'application. Cette liste se construit par un processus itératif :
+
+```mermaid
+flowchart TB;
+
+  A[build l'image docker];
+  B[regarder les logs];
+  C[trouver les packages qui n'ont pas réussi à s'installer];
+  D[les logs spécifient généralement les librairies système manquantes];
+  E[ajouter les librairies manquantes au Dockerfile];
+  
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E --> A
+
+```
+
 - **installation du package R et de ses dépendances**. Si les dépendances ont été correctement spécifiées dans le fichier DESCRIPTION, il n'est pas nécessaire de changer cette partie.
 - **exposer le port utilisé par l'application**. Il n'est généralement pas nécessaire de changer le port exposé.
 - **entrypoint**, i.e. la commande de lancement du conteneur. Il n'est pas nécessaire de modifier cette commande si le nom de la fonction dans le fichier `main.R` n'a pas été modifié.
 
+#### Espace Dockerhub
+
+L'image docker construite pour l'application doit être hébergée sur une forge. Dans ce tuto, on utilise la forge [dockerhub](https://hub.docker.com/).
+
+Après s'être créé un compte, noter le nom de ce comtpe (`account`), et le `repository_name` que l'on crée où sera hébergée l'image. Mettre les droits de cette image en public.
+
 #### Intégration continue (CI)
 
-Le fichier `.github/workflows/ci.yaml` contient une suite d'instructions qui vont s'éxécuter à chaque fois qu'une modification du code sur le dépôt Git est effectuée. C'est l'approche de l'intégration continue : à chaque fois que le code source de l'application est modifié (nouvelles fonctionnalités, correction de bugs, etc.), l'image Docker est automatiquement reconstruite et envoyée sur le registry Docker de votre choix.
+Le fichier `.github/workflows/ci.yaml` contient une suite d'instructions qui vont s'éxécuter à chaque fois qu'une modification du code sur le dépôt Git est effectuée. C'est l'approche de l'intégration continue : à chaque fois que le code source de l'application est modifié (nouvelles fonctionnalités, correction de bugs, etc.), l'image Docker est automatiquement reconstruite et envoyée sur [le registry Docker de votre choix](https://github.com/InseeFrLab/template-shiny-app/blob/main/.github/workflows/ci.yaml#L19). Il faut donc changer la valeur de `jobs.docker.steps.name.images` avec celui qu'on a créé juste au dessus : `account/repository_name`).
 
 ### Déploiement de l'application
 
@@ -69,26 +93,30 @@ Le fichier `.github/workflows/ci.yaml` contient une suite d'instructions qui von
 
 Le déploiement de l'application nécessite la création d'un chart Helm. Concrètement, un chart Helm peut être vu comme un package Kubernetes, contenant les ressources nécessaires au déploiement d'une application. 
 
-Ce repository contient un template de chart Helm permettant le déploiement de l'application [shiny-app](https://github.com/InseeFrLab/template-shiny-app). Il convient donc de forker également ce second repository, qui va servir de base pour le chart Helm de votre application. Ce chart contient pour l'essentiel deux fichiers.
+Ce repository contient un [template de chart Helm](https://github.com/InseeFrLab/helm-charts-shiny-apps) permettant le déploiement de l'application [shiny-app](https://github.com/InseeFrLab/template-shiny-app). Il convient donc de forker également ce second repository, qui va servir de base pour le chart Helm de votre application. Ce chart contient pour l'essentiel deux fichiers.
 
-Le fichier `Chart.yaml` contient les métadonnées du chart (nom, version) ainsi que ses dépendances, i.e. les potentiels autres charts Helm dont il hérite. Dans notre cas, on voit que le chart hérite du [chart Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny) d'InseeFrLab. Ce chart spécifie généralement les ressources Kubernetes nécessaires au déploiement d'une application Shiny, de sorte à ce que l'on ait qu'à modifier les valeurs d'instanciation pour déployer notre application.
+- **Le fichier `Chart.yaml`** contient les métadonnées du chart ([nom](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/Chart.yaml#L2), [version](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/Chart.yaml#L6)) ainsi que ses dépendances, i.e. les potentiels autres charts Helm dont il hérite. Dans notre cas, on voit que le chart hérite du [chart Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny) d'InseeFrLab. Ce chart spécifie généralement les ressources Kubernetes nécessaires au déploiement d'une application Shiny, de sorte à ce que l'on ait qu'à modifier les valeurs d'instanciation pour déployer notre application.
 
-Le fichier `values.yaml` contient précisément les valeurs que l'on modifie par rapport au chart général. Les modifications à apporter dépendent naturellement de ce que réalise en pratique l'application, car cela conditionne les ressources dont elle a besoin. Dans un premier temps, il nous faut modifier : 
-- le chemin et nom de l'image (paramètre `shiny.image.repository`)
-- le tag de l'image, i.e. sa version (paramètre `shiny.image.tag`)
-- l'hostname de l'Ingress l'URL à laquelle l'application sera accessible une fois déployée (paramètre shiny.ingress.hostname)
+- **Le fichier `values.yaml`** contient précisément les valeurs que l'on modifie par rapport au chart général. Les modifications à apporter dépendent naturellement de ce que réalise en pratique l'application, car cela conditionne les ressources dont elle a besoin. Dans un premier temps, il nous faut modifier : 
+- [le chemin et nom de l'image](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/values.yaml#L3) (paramètre `shiny.image.repository`)
+- [le tag de l'image](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/values.yaml#L4), i.e. sa version (paramètre `shiny.image.tag`)
+- [l'hostname de l'Ingress](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/values.yaml#L7), l'URL à laquelle l'application sera accessible une fois déployée (paramètre `shiny.ingress.hostname`); par exemple `myshinyapp.lab.sspcloud.fr`.
 
 #### Utilisation du stockage de données S3 avec MinIO
 
-Si l'application Shiny utilise des données en entrée stockées sur MinIO, il faut donner la valeur `true` au paramètre `shiny.s3.enabled`. 
+Si l'application Shiny utilise des données en entrée stockées sur MinIO, il faut donner la valeur `true` au paramètre `shiny.s3.enabled`.
 
 Par ailleurs, il faut fournir à l'application les **informations d'authentification** au service de stockage. Ces informations sont sensibles, et ne doivent donc jamais figurer en clair dans le code source de l'application. Pour éviter ce risque, on va inscrire ces informations dans un objet Kubernetes appelé **Secret**, qui va nous permettre de les passer à l'application sous la forme de **variables d'environnement**.
 
 La première étape est de créer un compte de service sur la [console MinIO](https://minio-console.lab.sspcloud.fr/). Pour ce faire :
-- onglet "Service Accounts" -> "Create Service Account" -> "Create"
+- menu "Identity" -> "Service Accounts" -> "Create Service Account" -> "Create"
 - comme précédemment, conserver à l'écran les informations de connexion
 
-La seconde étape est de créer un Secret Kubernetes contenant ces informations. Voici un template de Secret à utiliser :
+La seconde étape est de créer un Secret Kubernetes contenant ces informations. Voici un template de Secret à écrire dans un fichier `/quelconque.yaml` :
+
+
+Pour être accessible dans l'application, ce secret doit être appliqué comme une ressource dans le namespace Kubernetes dans lequel sera déployé l'application. Pour cela :
+- mettre le template de secret dans un fichier `quelconque.yaml` et remplacer les valeurs comme indiqué ci-dessus
 
 ```yaml
 apiVersion: v1
@@ -105,10 +133,8 @@ stringData:
 
 Les valeurs de `AWS_ACCESS_KEY_ID` et `AWS_SECRET_ACCESS_KEY` sont à remplacer par les valeurs obtenues à l'étape précédente sur la console MinIO. Les valeurs de `AWS_S3_ENDPOINT` et `AWS_DEFAULT_REGION` n'ont pas besoin d'être modifiées pour une utilisation sur le cluster. Enfin, le nom du Secret (variable `metadata.name`) doit correspondre à la valeur de la variable `shiny.s3.existingSecret` du fichier `values.yaml`.
 
-Pour être accessible dans l'application, ce secret doit être appliqué comme une ressource dans le namespace Kubernetes dans lequel sera déployé l'application. Pour cela :
-- mettre le template de secret dans un fichier `sc-s3.yaml` et remplacer les valeurs comme indiqué ci-dessus
-- dans un terminal, exécuter `kubectl apply -f sc-s3.yaml`
-- si tout a bien fonctionné, un message devrait confirmer la création du secret.
+- dans un terminal, exécuter `kubectl apply -f quelconque.yaml`
+- si tout a bien fonctionné, un message devrait confirmer la création du secret. Du style `secret/nom_de_secret created` où `nom_de_secret` est ce que vous avez renseigné dans `metadata.name` du fichier `quelconque.yaml`.
 
 Une fois le secret appliqué, les quatre variables d'environnement définies dans le secret sont accessibles dans l'application. Vu que ces variables sont standards, il est alors possible de se connecter au stockage MinIO via le package R `aws.s3` sans même avoir besoin de les préciser. Le fichier [data.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/R/data.R) montre comment écrire et lire des données sur MinIO une fois que ces variables d'environnement ont été créées.
 
