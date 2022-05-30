@@ -1,7 +1,7 @@
 apiVersion: v2
 name: shiny-app-template
-version: 1.0.0
+version: 1.0.1
 dependencies:
   - name: shiny
-    version: 0.13.0
+    version: 0.15.0
     repository: https://inseefrlab.github.io/helm-charts
