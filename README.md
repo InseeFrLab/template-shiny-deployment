@@ -76,7 +76,7 @@ Le fichier `Chart.yaml` contient les métadonnées du chart (nom, version) ainsi
 Le fichier `values.yaml` contient précisément les valeurs que l'on modifie par rapport au chart général. Les modifications à apporter dépendent naturellement de ce que réalise en pratique l'application, car cela conditionne les ressources dont elle a besoin. Dans un premier temps, il nous faut modifier : 
 - le chemin et nom de l'image (paramètre `shiny.image.repository`)
 - le tag de l'image, i.e. sa version (paramètre `shiny.image.tag`)
-- l'hostname de l'Ingress l'URL à laquelle l'application sera accessible une fois déployée (paramètre shiny.ingress.hostname)
+- l'hostname de l'Ingress l'URL à laquelle l'application sera accessible une fois déployée (paramètre `shiny.ingress.hostname`)
 
 #### Utilisation du stockage de données S3 avec MinIO
 
