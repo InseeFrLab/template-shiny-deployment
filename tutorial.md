@@ -58,9 +58,9 @@ Le fichier `Dockerfile` situé à la racine du projet contient une suite d'instr
 ```mermaid
 flowchart TB;
   A[build l'image docker];
-  B[regarder les logs];
-  C[trouver les packages qui n'ont pas réussi à s'installer];
-  D[les logs spécifient généralement les librairies système manquantes];
+  B[les logs spécifient généralement les librairies système manquantes];
+  C[regarder les logs];
+  D[trouver les packages qui n'ont pas réussi à s'installer];
   E[ajouter les librairies manquantes au Dockerfile];
   
   A --> B
@@ -87,16 +87,16 @@ Le déploiement de l'application nécessite la création d'un chart Helm. Concr�
 
 Ce dépôt contient un [chart Helm](https://helm.sh/) permettant le déploiement de l'[application template](https://github.com/InseeFrLab/template-shiny-app). Il convient donc de *forker* également ce second repository, qui va servir de base pour le chart `Helm` de votre application. Ce chart contient pour l'essentiel deux fichiers.
 
-**Le fichier `Chart.yaml`** contient les métadonnées du chart ([nom](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/Chart.yaml#L2), [version](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/Chart.yaml#L6)) ainsi que ses dépendances, i.e. les potentiels autres charts `Helm` dont il hérite. Dans notre cas, on voit que le chart hérite du chart [Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny) d'[InseeFrLab](https://github.com/InseeFrLab). Ce chart spécifie généralement les ressources Kubernetes nécessaires au déploiement d'une application Shiny, de sorte à ce que l'on ait qu'à modifier les valeurs d'instanciation pour déployer notre application.
+**Le fichier `Chart.yaml`** contient les métadonnées du chart ([nom](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/Chart.yaml#L2), [version](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/Chart.yaml#L6)) ainsi que ses dépendances, i.e. les potentiels autres charts `Helm` dont il hérite. Dans notre cas, [on voit](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/Chart.yaml#L5) que le chart hérite du chart [Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny) d'[InseeFrLab](https://github.com/InseeFrLab). Ce chart spécifie généralement les ressources Kubernetes nécessaires au déploiement d'une application Shiny, de sorte à ce que l'on ait qu'à modifier les valeurs d'instanciation pour déployer notre application.
 
 **Le fichier `values.yaml`** contient précisément les valeurs que l'on modifie par rapport au chart général. Les modifications à apporter dépendent naturellement de ce que réalise en pratique l'application, car cela conditionne les ressources dont elle a besoin. Dans un premier temps, il nous faut modifier : 
-- [le chemin et nom de l'image](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/values.yaml#L3) (paramètre `shiny.image.repository`)
-- [le tag de l'image](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/values.yaml#L4), i.e. sa version (paramètre `shiny.image.tag`)
-- [l'hostname de l'Ingress](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/main/charts/quakes/values.yaml#L7), l'URL à laquelle l'application sera accessible une fois déployée (paramètre `shiny.ingress.hostname`); par exemple `myshinyapp.lab.sspcloud.fr`.
+- [le chemin et nom de l'image](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L3) (paramètre `shiny.image.repository`)
+- [le tag de l'image](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L4), i.e. sa version (paramètre `shiny.image.tag`)
+- [l'hostname de l'Ingress](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L7), l'URL à laquelle l'application sera accessible une fois déployée (paramètre `shiny.ingress.hostname` avec comme nom de domaine obligatoire `lab.sspcloud.fr`); par exemple dans notre cas :`myshinyapp.lab.sspcloud.fr`.
 
 #### Utilisation du stockage de données S3 avec MinIO
 
-Si l'application Shiny utilise des données en entrée stockées sur MinIO, il faut donner la valeur `true` au [paramètre shiny.s3.enabled](https://github.com/InseeFrLab/helm-charts-shiny-apps/blob/33abf08be452467ddd80f1d12499be0a04dd128a/charts/quakes/values.yaml#L9).
+Si l'application Shiny utilise des données en entrée stockées sur MinIO, il faut donner la valeur `true` au [paramètre shiny.s3.enabled](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L9).
 
 Par ailleurs, il faut fournir à l'application les **informations d'authentification** au service de stockage. Ces informations sont sensibles, et ne doivent donc jamais figurer en clair dans le code source de l'application. Pour éviter ce risque, on va inscrire ces informations dans un objet Kubernetes appelé **Secret**, qui va nous permettre de les passer à l'application sous la forme de **variables d'environnement**.
 
@@ -104,7 +104,8 @@ La première étape est de créer un compte de service sur la [console MinIO](ht
 - menu "Identity" -> "Service Accounts" -> "Create Service Account" -> "Create"
 - comme précédemment, conserver à l'écran les informations de connexion
 
-La seconde étape est de créer un Secret Kubernetes contenant ces informations. Voici un template de Secret à utiliser :
+La seconde étape est de créer un Secret Kubernetes contenant ces informations. Pour être accessible dans l'application, ce secret doit être appliqué comme une ressource dans le namespace Kubernetes dans lequel sera déployé l'application. Pour cela :
+- Écrire le template suivant dans un fichier `quelconque.yaml` :
 
 ```yaml
 apiVersion: v1
@@ -119,7 +120,7 @@ stringData:
   AWS_DEFAULT_REGION: us-east-1
 ```
 
-Les valeurs de `AWS_ACCESS_KEY_ID` et `AWS_SECRET_ACCESS_KEY` sont à remplacer par les valeurs obtenues à l'étape précédente sur la console MinIO. Les valeurs de `AWS_S3_ENDPOINT` et `AWS_DEFAULT_REGION` n'ont pas besoin d'être modifiées pour une utilisation sur le cluster. Enfin, le nom du Secret (variable `metadata.name`) doit correspondre à la valeur de la variable `shiny.s3.existingSecret` du fichier `values.yaml`.
+- Les valeurs de `AWS_ACCESS_KEY_ID` et `AWS_SECRET_ACCESS_KEY` sont à remplacer par les valeurs obtenues à l'étape précédente sur la console MinIO. Les valeurs de `AWS_S3_ENDPOINT` et `AWS_DEFAULT_REGION` n'ont pas besoin d'être modifiées pour une utilisation sur le cluster. Enfin, le nom du Secret (variable `metadata.name`) doit porter la même valeur que la variable [`shiny.s3.existingSecret`](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L10)
 
 Pour être accessible dans l'application, ce secret doit être appliqué comme une ressource dans le namespace Kubernetes dans lequel sera déployé l'application. Pour cela :
 - mettre le template de secret dans un fichier `quelconque.yaml` et remplacer les valeurs comme indiqué ci-dessus
@@ -130,9 +131,9 @@ Une fois le secret appliqué, les quatre variables d'environnement définies dan
 
 #### Utilisation d'une base de données PostgreSQL
 
-Si l'application Shiny utilise une base PostgreSQL, il faut donner la valeur `true` au paramètre `shiny.postgresql.enabled`. Il est par ailleurs possible de changer les paramètres `shiny.postgresql.username` (nom d'utilisateur), `shiny.postgresql.database` (nom de la base de données) et `shiny.postgresql.fullnameOverride` (nom de domaine du service PostgreSQL) à sa guise, sachant que ces paramètres seront de toute manière passés automatiquement à l'application sous forme de variables d'environnement.
+Si l'application Shiny utilise une base PostgreSQL, il faut donner la valeur `true` au paramètre [`shiny.postgresql.enabled`](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L12). Il est par ailleurs possible de changer les paramètres [`shiny.postgresql.username`](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L14) (nom d'utilisateur), [`shiny.postgresql.database`](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L15) (nom de la base de données) et [`shiny.postgresql.fullnameOverride`](https://github.com/InseeFrLab/template-shiny-deployment/blob/master/values.yaml#L19) (nom de domaine du service PostgreSQL) à sa guise, sachant que ces paramètres seront de toute manière passés automatiquement à l'application sous forme de variables d'environnement.
 
-Les mots de passe de connexion, donnée sensible, doivent quant à eux être passés à l'application via un Secret Kubernetes. La procédure est la même que précédemment, et le template de Secret à utiliser est : 
+Les mots de passe de connexion, données sensibles, doivent quant à eux être passés à l'application via un Secret Kubernetes. La procédure est la même que précédemment, et le template de Secret à utiliser est : 
 
 ```yaml
 apiVersion: v1
@@ -146,7 +147,7 @@ stringData:
   replication-password: changeme
 ```
 
-Trois passwords sont nécessaires, mais seul le champ `password` (password utilisateur) sera utilisé en pratique dans l'application. Il est donc possible de fixer le même password pour les trois champs sans trop de risque. Là encore, toutes ces informations (valeurs du chart et secrets) seront passées à l'application sous la forme de variables d'environnement, dont voici la liste :
+Trois passwords sont nécessaires, mais seul le champ `stringData.password` (password utilisateur) sera utilisé en pratique dans l'application. Il est donc possible de fixer le même password pour les trois champs de `stringData` sans trop de risque. Là encore, toutes ces informations (valeurs du chart et secrets) seront passées à l'application sous la forme de variables d'environnement, dont voici la liste :
 
 |      **Variable**      |          **Description**          |
 |:----------------------:|:---------------------------------:|
@@ -156,21 +157,22 @@ Trois passwords sont nécessaires, mais seul le champ `password` (password utili
 | POSTGRESQL_DB_USER     | Nom de l'utilisateur à créer      |
 | POSTGRESQL_DB_PASSWORD | Password de l'utilisateur à créer |
 
-Le fichier [data.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/R/data.R) montre comment se connecter à la base PostgreSQL et y écrire de la donnée, et le fichier [server.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/inst/app/server.R) montre comment se connecter à la base PostgreSQL et y lire de la donnée.
+Le fichier [data.R](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/R/data.R#L24-L31) montre comment se connecter à la base PostgreSQL et y écrire de la donnée, et ces [lignes](https://github.com/InseeFrLab/template-shiny-app/blob/main/myshinyapp/inst/app/server.R#L6-L13)) du fichier `server.R` montre comment se connecter à la base PostgreSQL et y lire de la donnée.
 
 #### Déploiement du chart Helm
 
 Finalement, pour déployer l'application sur le cluster :
 - lancer un service VSCode sur le cluster *en mettant des droits Admin sur le namespace Kubernetes* (à l'initialisation du service dans l'IHM : onglet Kubernetes -> "Role" -> sélectionner "admin")
 - lancer un terminal
-- cloner le repository contenant le chart de **votre** application (pas le template)
+- cloner le dépôt contenant le chart de **votre** application (pas le template)
 - importer les dépendances (en l'occurence, le chart [Shiny](https://github.com/InseeFrLab/helm-charts/tree/master/charts/shiny)) : `helm dependency update nom_du_repo`
 - exécuter la commande : `helm install nom_du_repo --generate-name`
 
-Si tout a fonctionné, un message devrait confirmer l'instanciation du chart, est l'application devrait désormais être disponible à l'URL (bien utiliser le protocole https) spécifiée dans le fichier `values.yaml`.
+Si tout a fonctionné, un message devrait confirmer l'instanciation du chart, et l'application devrait désormais être disponible à l'URL spécifiée [dans le fichier `values.yaml`](https://github.com/InseeFrLab/helm-charts/blob/master/charts/shiny/values.yaml#L46).
 
 ### TODO
 
+- debugging pods/helm
 - industrialiser avec Golem
 - LDAP et utilisation concurrente avec ShinyProxy
 - GitOps avec Argo CD
