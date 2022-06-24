@@ -54,14 +54,30 @@ Pour pouvoir être déployée sur un cluster Kubernetes, une application doit n�
 
 Le fichier `Dockerfile` situé à la racine du projet contient une suite d'instructions qui permettent de conteneuriser l'application, sous la forme d'une image Docker. Ce fichier contient 5 parties :
 - **appel de l'image Docker de base** : `rocker/shiny`. Il n'est généralement pas nécessaire de changer cette image.
-- **installation des librairies système** nécessaires pour installer les packages R utilisés par l'application. Cette liste se construit par un processus itératif : build l'image docker -> regarder les logs -> trouver les packages qui n'ont pas réussi à s'installer -> les logs spécifient généralement les librairies système manquantes -> ajouter les librairies manquantes au Dockerfile -> build l'image docker -> ...
+- **installation des librairies système** nécessaires pour installer les packages R utilisés par l'application. Cette liste se construit par un processus itératif :
+```mermaid
+flowchart TB;
+  A[build l'image docker];
+  B[regarder les logs];
+  C[trouver les packages qui n'ont pas réussi à s'installer];
+  D[les logs spécifient généralement les librairies système manquantes];
+  E[ajouter les librairies manquantes au Dockerfile];
+  
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E --> A
+```
 - **installation du package R et de ses dépendances**. Si les dépendances ont été correctement spécifiées dans le fichier DESCRIPTION, il n'est pas nécessaire de changer cette partie.
 - **exposer le port utilisé par l'application**. Il n'est généralement pas nécessaire de changer le port exposé.
 - **entrypoint**, i.e. la commande de lancement du conteneur. Il n'est pas nécessaire de modifier cette commande si le nom de la fonction dans le fichier `main.R` n'a pas été modifié.
 
 #### Intégration continue (CI)
 
-Le fichier `.github/workflows/ci.yaml` contient une suite d'instructions qui vont s'éxécuter à chaque fois qu'une modification du code sur le dépôt Git est effectuée. C'est l'approche de l'intégration continue : à chaque fois que le code source de l'application est modifié (nouvelles fonctionnalités, correction de bugs, etc.), l'image Docker est automatiquement reconstruite et envoyée sur le registry Docker de votre choix.
+Le fichier `.github/workflows/ci.yaml` contient une suite d'instructions qui vont s'éxécuter à chaque fois qu'une modification du code sur le dépôt Git est effectuée. C'est l'approche de l'intégration continue : à chaque fois que le code source de l'application est modifié (nouvelles fonctionnalités, correction de bugs, etc.), l'image `Docker` est automatiquement reconstruite et envoyée sur le registry `Docker` de votre choix.
+
+Dans ce tuto, on utilise la forge [DockerHub](https://hub.docker.com/), idéale pour les projets open-source. Une création de compte est nécessaire pour pouvoir l'utiliser, ainsi qu'un dépôt associé au projet. Une fois ces étapes effectuées, il faut modifier le nom de l'image dans le fichier [ci.yaml](https://github.com/InseeFrLab/template-shiny-app/blob/main/.github/workflows/ci.yaml#L19) avec vos informations : `<username_docker_hub>/<project_name>`.
 
 ### Déploiement de l'application
 
