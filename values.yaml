@@ -2,6 +2,7 @@ shiny:
   image:
     repository: inseefrlab/shiny-app-template
     tag: "1.0.1"
+    pullPolicy: Always
   ingress:
     enabled: true
     hostname: myshinyapp.lab.sspcloud.fr
